@@ -28,12 +28,12 @@ Properties:
 Methods:
 - **call** method calls API endpoind with supplied data array in accordance with "params" part as described in API docs. It will encode to JSON, so need just PHP array (not object!).
 - **logout** explicitly closes the session.
-- **getSessionId** returns active sesson id or null of sonmething wrong. You may want to put session id to user's coockie.
+- **getSessionId** returns active sesson id or null if sonmething wrong. You may want to put session id to user's coockie.
 
 ## Classes BillingFile and BillingMemcached
 *Not yet implemented.*
 
-Extents class Billing to store session id in the file or Memcached respectively. Used for integration application for keeping application-wide session. Needs extra config options. If session id supplied on creation, it will be stored too.
+Extends class Billing to store session id in the file or Memcached respectively. Used for integration application for keeping application-wide session. Needs extra config options. If session id supplied on creation, it will be stored too.
 
 
 ## Installation
