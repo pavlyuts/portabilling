@@ -99,8 +99,8 @@ Class Billing {
             if ($this->login()) {
                 return $this->makeCall($endpoint, $request);
             }
-            return true;
         }
+        return true;
     }
 
     /**
