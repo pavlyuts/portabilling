@@ -31,7 +31,7 @@ Class Billing {
     public $sessionId = null;
     public $status = true; 
     public $errorCode = null;
-    public $message = null;
+    public $errorMessage = null;
     public $response = null;
 
     /**
@@ -191,7 +191,7 @@ Class Billing {
         $this->response = $response;
         $this->status = true;
         $this->errorCode = null;
-        $this->message = null;
+        $this->errorMessage = null;
         return true;
     }
 
@@ -206,7 +206,7 @@ Class Billing {
         $this->response = null;
         $this->status = false;
         $this->errorCode = $code;
-        $this->message = $message;
+        $this->errorMessage = $message;
         return false;
     }
 
