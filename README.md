@@ -3,7 +3,7 @@
 ## Purpose
 
 PHP class to simplify communication to PortaOne billing system while creating
-user portal application or integration code. Build for composer with PSR-4 autoload, uses PSR-3 object for logging.
+user portal applications or integration code. Build for composer with PSR-4 autoload, uses PSR-3 object for logging.
 
 Please, refer to [PortaBilling API docs](https://www.portaone.com/docs/PortaBilling_API.html)
 
@@ -11,9 +11,9 @@ Please, refer to [PortaBilling API docs](https://www.portaone.com/docs/PortaBill
 
 ## Class Billing
 
-Class Billling uses config array to connect API and got session id or can use supplied session id. If sesson id provided, it will not try to login at init, but will try relogin if session id failed.
+Class Billling uses config array to connect API and get session id or can use a supplied session id. If a sesson id provided, it will not try to login at init, but will try relogin if the session id failed.
 
-It use [PSR-3 compatible logging interface](https://www.php-fig.org/psr/psr-3/), please, provide logging object of your choice and define severity filter on it. No logging if it omitted or null.
+It use [PSR-3 compatible logging interface](https://www.php-fig.org/psr/psr-3/), please, provide logging object of your choice and define severity filter on it. No logging if it omitted or null. Designed not to trow any exception, but no guarantee.
 
 Constructor accepts:
 - **config** mandatory array of configuration and account parameters, see  [the config sample](https://github.com/pavlyuts/portabilling/blob/master/config.sample.php).
@@ -23,17 +23,17 @@ Constructor accepts:
 Properties:
 - **status** shows the last operation status, true for Ok.
 - **errorCode** and **errorMessage** stores the last error code and error message. null for Ok.
-- **response** property holds the API answer, JSON-decoded to PHP stdObject.
+- **response** holds the API answer, JSON-decoded to PHP stdObject.
 
 Methods:
-- **call** method calls API endpoind with supplied data array in accordance with "params" part as described in API docs. It will encode to JSON, so need just PHP array (not object!).
+- **call** method calls API endpoind with supplied data array in accordance with "params" part as described in API docs. Endpoints are checked agains endpoint list and ERROR logs if not found. It will encode to JSON, so need just PHP array (not object!).
 - **logout** explicitly closes the session.
-- **getSessionId** returns active sesson id or null if sonmething wrong. You may want to put session id to user's coockie.
+- **getSessionId** returns active sesson id or null if sonmething wrong. You may want to put the session id to a user's coockie.
 
 ## Classes BillingFile and BillingMemcached
 *Not yet implemented.*
 
-Extends class Billing to store session id in the file or Memcached respectively. Used for integration application for keeping application-wide session. Needs extra config options. If session id supplied on creation, it will be stored too.
+Extends class Billing to store session id in the file or Memcached respectively. Useful for integration application by keeping application-wide session. Needs extra config options. If session id supplied on creation, it will be stored too.
 
 
 ## Installation
@@ -61,7 +61,7 @@ Not yet in Composer repo. Please, use it from github.
 
 
 ## Usage
-Mean the library installed by Composer as described above with Monolog required.
+Mean the library installed by Composer as described above with Monolog required too.
 
 ```
 <?php
@@ -74,7 +74,7 @@ use Monolog\Handler\StreamHandler;
 
 //create configuration
 $params = array(
-    'api' => 'https://your-server.domain/rest/',
+    'api' => 'https://your-server.domain/rest/', //mind the /rest/ on the end
     'login' => 'yourlogin',
     'password' => 'yourpass',
 ); 
@@ -95,7 +95,7 @@ if (!$a->status) {
 $s = $a->getSessionId();
 echo PHP_EOL.'Session id is:'.$s.PHP_EOL.PHP_EOL;
 
-//create an instance for the known session id
+//create an instance for a known session id
 $b = new Billing($params, $log, $s);
 
 //If problem, exit with error message
@@ -103,7 +103,7 @@ if (!$b->status) {
     exit('Init failure: '.$b->errorMessage);
 }
 
-//call API fuction with no mandatory fields
+//call API fuction without any mandatory fields
 if (!$b->call('Currency/get_currency_list')) {
     // if fail, exit with message
     exit('Currency request failure:'.$b->errorCode); 
