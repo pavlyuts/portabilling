@@ -83,6 +83,10 @@ Class Billing {
         if (!$this->status) {
             return false;
         }
+        if (!in_array($endpoint, Methods::LIST)) {
+            $this->logError('API endpoint check error for "'.$endpoint.'"');
+            return false;
+        }
         $request = array(
             'auth_info' => json_encode(array('session_id' => $this->sessionId))
         );
