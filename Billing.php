@@ -28,7 +28,7 @@ Class Billing {
 
     protected $config;
     protected $logger;
-    public $sessionId = null;
+    protected $sessionId = null;
     public $status = true; 
     public $errorCode = null;
     public $errorMessage = null;
@@ -59,6 +59,15 @@ Class Billing {
         if (is_null($this->sessionId)) {
             $this->login();
         }
+    }
+    
+    /**
+     * Returns session id
+     * 
+     * @return string - session Id, if present or null if not.
+     */
+    public function getSessionId() {
+        return ($this->status) ? $this->sessionId : null;
     }
 
     /**
