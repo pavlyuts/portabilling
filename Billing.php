@@ -161,6 +161,7 @@ Class Billing {
      * @return boolean - true if success
      */
     protected function makeCall(string $endpoint, array $request = array()) {
+        $this->logDebug('API call, endpoint:'.$endpoint, array('request' => $request));
         try {
             $response = Requests::post($this->config['api'] . $endpoint, array(), $request
                             , array('verify' => $this->config['verify']));
