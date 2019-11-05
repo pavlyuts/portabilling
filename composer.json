@@ -1,0 +1,21 @@
+{
+    "name": "pavlyuts/portabilling",
+    "description": "PortaOne billing API wrapper",
+    "type": "library",
+    "version": "0.0.1",
+    "require": {
+        "psr/log": "^1.1",
+        "rmccue/requests": "^1.7"
+    },
+    "authors": [
+        {
+            "name": "Alexey Pavlyuts",
+            "email": "alexey@pavlyuts.ru"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Portaone\\": ""
+        }
+    }
+}
