@@ -38,27 +38,11 @@ Extends class Billing to store session id in the file or Memcached respectively.
 
 ## Installation
 
-Not yet in Composer repo. Please, use it from github.
+In the Composer storage. Just add proper require section:
 
-    repositories": [
-        {
-            "type":"package",
-            "package": {
-              "name": "pavlyuts/portabilling",
-              "version":"master",
-              "source": {
-                  "url": "https://github.com/pavlyuts/portabilling.git",
-                  "type": "git",
-                  "reference":"master"
-                }
-            }
-        }
-    ],
     "require": {
-        "pavlyuts/portabilling": "master"
+        "pavlyuts/portabilling": "*"
     }
-
-
 
 ## Usage
 Mean the library installed by Composer as described above with Monolog required too.

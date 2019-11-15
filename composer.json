@@ -2,7 +2,10 @@
     "name": "pavlyuts/portabilling",
     "description": "PortaOne billing API wrapper",
     "type": "library",
-    "version": "0.0.1",
+    "version": "0.2",
+    "license": "GPL-2.0-or-later",
+    "homepage":"https://github.com/pavlyuts/portabilling",
+    "keywords": [ "portaone", "billing", "api", "portastart" ],
     "require": {
         "psr/log": "^1.1",
         "rmccue/requests": "^1.7"
@@ -10,7 +13,8 @@
     "authors": [
         {
             "name": "Alexey Pavlyuts",
-            "email": "alexey@pavlyuts.ru"
+            "email": "alexey@pavlyuts.ru",
+            "homepage": "https://pavlyuts.ru"
         }
     ],
     "autoload": {
