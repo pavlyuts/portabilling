@@ -2,7 +2,7 @@
     "name": "pavlyuts/portabilling",
     "description": "PortaOne billing API wrapper",
     "type": "library",
-    "version": "0.2",
+    "version": "0.3",
     "license": "GPL-2.0-or-later",
     "homepage":"https://github.com/pavlyuts/portabilling",
     "keywords": [ "portaone", "billing", "api", "portastart" ],
