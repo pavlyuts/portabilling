@@ -24,10 +24,9 @@ use Psr\Log;
  * the session id not accepted by API
  * 
  */
-Class Billing {
+Class Billing extends BillingBase { 
 
     protected $config;
-    protected $logger;
     protected $sessionId = null;
     public $status = true; 
     public $errorCode = null;
@@ -42,25 +41,15 @@ Class Billing {
      * @param string $sessionId - session id to continue.
      */
     function __construct(array $config, Log\LoggerInterface $logger = null, string $sessionId = null) {
+        parent::__construct($logger);
+        $config['verify'] = (isset($config['verify'])) ? $config['verify'] : false ;
         $this->config = $config;
-        if (is_null($logger)) {
-            $this->logger = new Log\NullLogger();
-        } else {
-            $this->logger = $logger;
-        }
-        if (!isset($config['verify'])) {
-            $this->config['verify'] = false;
-        }
-        if (is_null($sessionId)) {
-            $this->restore();
-        } else {
-            $this->sessionId = $sessionId;
-        }
+        (is_null($sessionId)) ? $this->restore() : $this->sessionId = $sessionId;
         if (is_null($this->sessionId)) {
             $this->login();
         }
     }
-    
+     
     /**
      * Returns session id
      * 
@@ -80,26 +69,20 @@ Class Billing {
      * * @return boolean - true if siccess
      */
     public function call(string $endpoint, array $data = null) {
-        if (!$this->status) {
-            return false;
-        }
+        if (!$this->status) { return false; }
         if (!in_array($endpoint, Methods::LIST)) {
             $this->logError('API endpoint check error for "'.$endpoint.'"');
             return false;
         }
-        $request = array(
-            'auth_info' => json_encode(array('session_id' => $this->sessionId))
-        );
-
+        $request = array( 'auth_info' => json_encode(array('session_id' => $this->sessionId)));
         if (!is_null($data)) {
             $request['params'] = json_encode($data);
         }
-
         if (!$this->makeCall($endpoint, $request)) {
             if ($this->errorCode != 'Server.Session.check_auth.auth_failed') {
                 return false;
                 }
-            $this->logger->info('[API Wrapper] Session expired, relogin');
+            $this->logger->info('Session expired, relogin');
             if ($this->login()) {
                 return $this->makeCall($endpoint, $request);
             }
@@ -222,29 +205,6 @@ Class Billing {
         $this->errorCode = $code;
         $this->errorMessage = $message;
         return false;
-    }
-
-    /**
-     * Logs error
-     * 
-     * @param string $message - error message
-     * @param array $dump - extra data array to put in the log
-     */
-    protected function logError(string $message, array $dump = null) {
-        $this->logger->error($message);
-        if (!is_null($dump)) {
-            $this->logger->debug('', $dump);
-        }
-    }
-
-    /**
-     * Logs debug information
-     * 
-     * @param string $message - message to log
-     * @param array $dump - extra data array to put in the log
-     */
-    protected function logDebug(string $message, array $dump = null) {
-        $this->logger->debug($message, $dump);
     }
 
     /**
