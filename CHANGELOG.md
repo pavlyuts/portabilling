@@ -1,4 +1,7 @@
 # Changelog
+## 0.4
+- Class BillingFile implemented to store session in a file
+
 ## 0.3
 - Event handling introduced
 - Docimentation moved to Github Wiki, README cut.

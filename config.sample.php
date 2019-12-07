@@ -24,4 +24,7 @@ $BillingConfig = array(
     
     //API token to use instead password, needs username
     //'token' => 'token'
+    
+    //File to store/retrieve session ID
+    //'file' => '/somwhere/somefile'
 );
