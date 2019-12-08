@@ -14,8 +14,6 @@ namespace Portaone;
  */
 class BillingFile extends Billing {
 
-    protected $sessionFile = null;
-
     /**
      * @param array $config - configuration array, see config.sample.php for details
      * @param LoggerInterface $logger - PSR-3 compatible instance for logging
