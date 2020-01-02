@@ -16,7 +16,7 @@ Please, refer [project Wiki](https://github.com/pavlyuts/portabilling/wiki) for 
 In the Composer storage. Just add proper require section:
 
     "require": {
-        "pavlyuts/portabilling": "0.4"
+        "pavlyuts/portabilling": "0.5"
     }
 It is a good idea to fix the version you use. Don't use next wersion without review, I can't promose backward compatibility even will try to keep it. Please, review the [changelog](https://github.com/pavlyuts/portabilling/blob/master/CHANGELOG.md) before to change used version.
 

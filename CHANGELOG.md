@@ -1,4 +1,7 @@
 # Changelog
+## 0.5
+- Fixed relogin issue
+
 ## 0.4
 - Class BillingFile implemented to store session in a file
 

@@ -84,7 +84,10 @@ Class Billing extends BillingBase {
                 }
             $this->logger->info('Session expired, relogin');
             if ($this->login()) {
+                $request['auth_info'] = json_encode(array('session_id' => $this->sessionId));
                 return $this->makeCall($endpoint, $request);
+            } else {
+                return false;
             }
         }
         return true;
