@@ -165,6 +165,7 @@ Class Billing extends BillingBase {
                 $this->logError('Can not decode answer to JSON', array('request' => $request, 'response' => $response));
                 return $this->failure("Can not decode answer to JSON");
             }
+            $this->logDebug('API call success', $response->body);
             return $this->ok($answer);
         } elseif ($response->status_code == 500) {
             $answer = json_decode($response->body);
