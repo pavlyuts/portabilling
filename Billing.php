@@ -160,6 +160,10 @@ Class Billing extends BillingBase {
             return $this->failure('HTTP Error: ' . $e->getMessage());
         }
         if ($response->success) {
+            if ($response->body == '{}') {
+                $this->logError('Empty API response', $request);
+                return $this->failure("Empty API response");;
+            }
             $answer = json_decode($response->body);
             if (is_null($answer)) {
                 $this->logError('Can not decode answer to JSON', array('request' => $request, 'response' => $response));
