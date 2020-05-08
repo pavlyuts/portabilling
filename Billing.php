@@ -69,7 +69,6 @@ Class Billing extends BillingBase {
      * * @return boolean - true if siccess
      */
     public function call(string $endpoint, array $data = null) {
-        if (!$this->status) { return false; }
         if (!in_array($endpoint, Methods::LIST)) {
             $this->logError('API endpoint check error for "'.$endpoint.'"');
             return false;
