@@ -175,7 +175,7 @@ Class Billing extends BillingBase {
             if ($answer->faultcode != 'Server.Session.check_auth.auth_failed') {
                 $this->logError('API error ' . $answer->faultcode . ', Message: ' . $answer->faultstring, array('request' => $request, 'response' => $response));
             }
-            return $this->failure('Code:' . $answer->faultcode . ', Message: ' . $answer->faultstring, $answer->faultcode);
+            return $this->failure($answer->faultstring, $answer->faultcode);
         }
         $this->logError('HTTP error ' . $response->status_code, array('request' => $request, 'response' => $response));
         return $this->failure('HTTP Error: ' . $response->status_code);
