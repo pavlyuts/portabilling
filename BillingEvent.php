@@ -25,6 +25,7 @@ use Psr\Log;
 class BillingEvent extends BillingBase {
 
     protected $notImplementedError;
+    protected $body;
 
     /**
      * Construct get the data from $_POST, check it and handle the event
@@ -42,8 +43,7 @@ class BillingEvent extends BillingBase {
         parent::__construct($logger);
         $this->notImplementedError = $notImplementedError;
         $this->checkCredentials($account);
-        $data = $this->parseBody();
-        $this->runEvent($data);
+        $this->runEvent($this->parseBody());
     }
 
     /**
@@ -79,19 +79,19 @@ class BillingEvent extends BillingBase {
      * 
      */
     protected function parseBody() {
-        $body = file_get_contents('php://input');
-        $data = json_decode($body);
+        $this->body = file_get_contents('php://input');
+        $data = json_decode($this->body);
         if (is_null($data)) {
-            $this->error(404, 'Body JSON decode error', array('Request body' => $body));
+            $this->error(404, 'Body JSON decode error', array('Request body' => $this->body));
         }
         if (!isset($data->event_type)) {
-            $this->error('404', 'parameter event_type not found.', array ('Request body' => $body ));
+            $this->error(404, 'parameter event_type not found.', array ('Request body' => $this->body ));
         }
         if (!array_key_exists($data->event_type, Events::LIST)) {
-            $this->error('404', 'Unknown event ' . $data->event_type . '.');
+            $this->error(404, 'Unknown event ' . $data->event_type . '.');
         }
         if (!isset($data->variables)) {
-            $this->error('404', 'Variables not found', array('Request body' => $body));
+            $this->error(404, 'Variables not found', array('Request body' => $this->body));
         }
         return $data;
     }
@@ -138,7 +138,7 @@ class BillingEvent extends BillingBase {
      */
     function __call($name, $arguments) {
         if ($this->notImplementedError) {
-            $this->error(501, 'Handler ' . $name . ' is not implemented', $arguments);
+            $this->error(404, 'Handler ' . $name . ' is not implemented', $arguments);
         }
         $this->logDebug('Catched not implemented handler ' . $name . '.', $arguments);
     }
