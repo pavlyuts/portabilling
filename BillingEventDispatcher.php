@@ -40,8 +40,8 @@ class BillingEventDispatcher extends BillingEvent {
     }
 
     protected function runEvent($data) {
-        $this->logDebug("Got event", ['server' => $_SERVER, 'body' => $this->body]);
-        $requests = $this->prepareRequets($data->event_type);
+        $this->logDebug("Got event", ['body' => $this->body]);
+        $requests = $this->prepareRequest($data->event_type);
         $responses = \Requests::request_multiple($requests);
         $this->logDebug("Request done, response", $responses);
         $this->processResponse($requests, $responses);
