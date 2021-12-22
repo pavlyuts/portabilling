@@ -6,9 +6,10 @@ This package intended to simplify communication to PortaOne billing system while
 
 *Not properly tested, use at your own risk!*
 
-There two key parts:
-- **[Billing API](https://github.com/pavlyuts/portabilling/wiki/Billing-API)** classes wrapping PortaBilling API. Used to create, read, change and remove objects in the billing system.
-- **[Billing Event](https://github.com/pavlyuts/portabilling/wiki/Billing-Event)** class to recieve and handle events from the billing system. 
+Classes:
+- **[BillingAPI](https://github.com/pavlyuts/portabilling/wiki/Billing-API)** classes wrapping PortaBilling API. Used to create, read, change and remove objects in the billing system.
+- **[BillingEvent](https://github.com/pavlyuts/portabilling/wiki/Billing-Event)** class to recieve and handle events from the billing system. 
+- **[BillingEventDispatcher](https://github.com/pavlyuts/portabilling/wiki/Billing-Event-Dispatcher)** class to dispatch events from the billing system over different HTTP(s) andpoints based on routing map. 
 
 Please, refer [project Wiki](https://github.com/pavlyuts/portabilling/wiki) for details and usage example.
 
@@ -16,7 +17,7 @@ Please, refer [project Wiki](https://github.com/pavlyuts/portabilling/wiki) for 
 In the Composer storage. Just add proper require section:
 
     "require": {
-        "pavlyuts/portabilling": "0.5"
+        "pavlyuts/portabilling": "0.6"
     }
 It is a good idea to fix the version you use. Don't use next wersion without review, I can't promose backward compatibility even will try to keep it. Please, review the [changelog](https://github.com/pavlyuts/portabilling/blob/master/CHANGELOG.md) before to change used version.
 

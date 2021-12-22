@@ -1,4 +1,9 @@
 # Changelog
+## 0.6
+- BillingEventDispatcher implemented
+- Minor fixes and internal class logic rework
+- Empty API response no more considered as an error
+
 ## 0.5
 - Fixed relogin issue
 
