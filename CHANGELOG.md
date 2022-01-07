@@ -1,4 +1,8 @@
 # Changelog
+## 0.7
+- Change directory layout to PSR-4 style
+- Remove API method list and check as it may change between PortaOne release
+
 ## 0.6
 - BillingEventDispatcher implemented
 - Minor fixes and internal class logic rework
