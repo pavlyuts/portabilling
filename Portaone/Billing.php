@@ -69,10 +69,6 @@ Class Billing extends BillingBase {
      * * @return boolean - true if siccess
      */
     public function call(string $endpoint, array $data = null) {
-        if (!in_array($endpoint, Methods::LIST)) {
-            $this->logError('API endpoint check error for "'.$endpoint.'"');
-            return false;
-        }
         $request = array( 'auth_info' => json_encode(array('session_id' => $this->sessionId)));
         if (!is_null($data)) {
             $request['params'] = json_encode($data);
