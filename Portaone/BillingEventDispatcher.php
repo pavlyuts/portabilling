@@ -83,7 +83,7 @@ class BillingEventDispatcher extends BillingEvent {
     protected function processResponse($requests, $responses) {
         $status = 520;
         foreach ($responses as $i => $response) {
-            $this->logInfo('Endpoint ' . $requests[$i]['uri'] . ' returned code ' . $response->status_code);
+            $this->logInfo('Endpoint ' . $response->url . ' returned code ' . $response->status_code);
             $status = ($status < $response->status_code) ? $status : $response->status_code;
         }
         http_response_code($status);
