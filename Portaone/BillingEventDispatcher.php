@@ -33,10 +33,10 @@ class BillingEventDispatcher extends BillingEvent {
      * will NOT match miltiple levels. It be replaced with '[^/]+'regex pattern, 
      * so test it in any regex tester
      */
-    function __construct(array $map, $account = null, \Psr\Log\LoggerInterface $logger = null, bool $notImplementedError = false) {
+    function __construct(array $map, $account = null, \Psr\Log\LoggerInterface $logger = null) {
         $this->logger = (is_null($logger)) ? new Log\NullLogger() : $logger;
         $this->expandMap($map);
-        parent::__construct($account, $this->logger, $notImplementedError);
+        parent::__construct($account, $this->logger, true);
     }
 
     protected function runEvent($data) {
