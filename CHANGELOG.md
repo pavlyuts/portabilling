@@ -1,4 +1,9 @@
 # Changelog
+## 0.8
+- Remove unused NonImplementerError feature
+- Change logging, add INFO level messages
+- Minor doc fix
+
 ## 0.7
 - Change directory layout to PSR-4 style
 - Remove API method list and check as it may change between PortaOne release
