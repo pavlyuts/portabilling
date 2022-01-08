@@ -80,16 +80,14 @@ class BillingEventDispatcher extends BillingEvent {
     }
 
     protected function processResponse($requests, $responses) {
-        if ($this->notImplementedError) {
-            $status = 520;
-            foreach ($responses as $i => $response) {
-                if ($response->status_code != 200) {
-                    $this->logWarning('Endpoint ' . $requests[$i]['uri'] . ' returned code ' . $response->status_code, $response);
-                }
-                $status = ($status < $response->status_code) ? $status : $response->status_code;
+        $status = 520;
+        foreach ($responses as $i => $response) {
+            if ($response->status_code != 200) {
+                $this->logWarning('Endpoint ' . $requests[$i]['uri'] . ' returned code ' . $response->status_code, $response);
             }
-            http_response_code($status);
+            $status = ($status < $response->status_code) ? $status : $response->status_code;
         }
+        http_response_code($status);
     }
 
     protected function expandMap(array $map) {
