@@ -35,7 +35,7 @@ class BillingEvent extends BillingBase {
      *        so any different contentmay be used if you override checkCredentials.
      * @param \Portaone\Log\LoggerInterface $logger - logger object
      * @param bool $notImplementedError - if true, unimplemented event processing 
-     *        will return 501 HTTP error to the billing system. Otherwise just 
+     *        will return 404 HTTP error to the billing system. Otherwise just 
      *        do nothing and return Ok.
      */
     function __construct($account = null, Log\LoggerInterface $logger = null,
