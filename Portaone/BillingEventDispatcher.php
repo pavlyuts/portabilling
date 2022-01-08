@@ -74,6 +74,7 @@ class BillingEventDispatcher extends BillingEvent {
                 'data' => $this->body,
                 'type' => 'POST'
             ];
+            $this->logInfo("Event $event dispatched to $route");
         }
         $this->logDebug("Requests prepared", $requests);
         return $requests;
@@ -82,9 +83,7 @@ class BillingEventDispatcher extends BillingEvent {
     protected function processResponse($requests, $responses) {
         $status = 520;
         foreach ($responses as $i => $response) {
-            if ($response->status_code != 200) {
-                $this->logWarning('Endpoint ' . $requests[$i]['uri'] . ' returned code ' . $response->status_code, $response);
-            }
+            $this->logInfo('Endpoint ' . $requests[$i]['uri'] . ' returned code ' . $response->status_code);
             $status = ($status < $response->status_code) ? $status : $response->status_code;
         }
         http_response_code($status);
