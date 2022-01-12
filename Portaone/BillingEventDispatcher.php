@@ -59,7 +59,7 @@ class BillingEventDispatcher extends BillingEvent {
 
     protected function prepareRequest($event) {
         if ([] == ($routes = $this->getRoutes($event))) {
-            http_response_code(404);
+            $this->logInfo("No route found for $event, exiting");
             exit;
         }
         $requests = [];
