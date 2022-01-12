@@ -1,4 +1,8 @@
 # Changelog
+
+## 0.9
+- Return 200 instead of 404 if no route found, write Info level log on it
+
 ## 0.8
 - Remove unused NonImplementerError feature
 - Change logging, add INFO level messages
