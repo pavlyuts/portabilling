@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.10
+- add getResponseArray method to return billing response as an asosociateive array
+
 ## 0.9
 - Return 200 instead of 404 if no route found, write Info level log on it
 
