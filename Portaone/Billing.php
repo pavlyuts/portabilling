@@ -28,7 +28,8 @@ Class Billing extends BillingBase {
 
     protected $config;
     protected $sessionId = null;
-    public $status = true; 
+    protected $rawResponse;
+    public $status = true;
     public $errorCode = null;
     public $errorMessage = null;
     public $response = null;
@@ -138,6 +139,15 @@ Class Billing extends BillingBase {
     }
 
     /**
+     * Return response as associated array
+     * 
+     * @return array - billling response
+     */
+    function getResponseArray() {
+        return ($this->status) ? json_decode($this->rawResponse, true) : false;
+    }
+    
+    /**
      * Perfoms API call with prepared request array
      * 
      * @param string $endpoint
@@ -160,7 +170,8 @@ Class Billing extends BillingBase {
                 $this->logError('Can not decode answer to JSON', array('request' => $request, 'response' => $response));
                 return $this->failure("Can not decode answer to JSON");
             }
-            $this->logDebug('API call success', array( 'response' => $response->body));
+            $this->logDebug('API call success', array('response' => $response->body));
+            $this->rawResponse = $response->body;
             return $this->ok($answer);
         } elseif ($response->status_code == 500) {
             $answer = json_decode($response->body);
