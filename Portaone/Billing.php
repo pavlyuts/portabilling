@@ -24,7 +24,7 @@ use Psr\Log;
  * the session id not accepted by API
  * 
  */
-Class Billing extends BillingBase { 
+Class Billing extends BillingBase {
 
     protected $config;
     protected $sessionId = null;
@@ -43,14 +43,14 @@ Class Billing extends BillingBase {
      */
     function __construct(array $config, Log\LoggerInterface $logger = null, string $sessionId = null) {
         parent::__construct($logger);
-        $config['verify'] = (isset($config['verify'])) ? $config['verify'] : false ;
+        $config['verify'] = (isset($config['verify'])) ? $config['verify'] : false;
         $this->config = $config;
         (is_null($sessionId)) ? $this->restore() : $this->sessionId = $sessionId;
         if (is_null($this->sessionId)) {
             $this->login();
         }
     }
-     
+
     /**
      * Returns session id
      * 
@@ -70,14 +70,14 @@ Class Billing extends BillingBase {
      * * @return boolean - true if siccess
      */
     public function call(string $endpoint, array $data = null) {
-        $request = array( 'auth_info' => json_encode(array('session_id' => $this->sessionId)));
+        $request = array('auth_info' => json_encode(array('session_id' => $this->sessionId)));
         if (!is_null($data)) {
             $request['params'] = json_encode($data);
         }
         if (!$this->makeCall($endpoint, $request)) {
             if ($this->errorCode != 'Server.Session.check_auth.auth_failed') {
                 return false;
-                }
+            }
             $this->logger->info('Session expired, relogin');
             if ($this->login()) {
                 $request['auth_info'] = json_encode(array('session_id' => $this->sessionId));
@@ -116,20 +116,20 @@ Class Billing extends BillingBase {
             return false;
         }
     }
-    
+
     /**
      * Closes the session explicitly
      */
     public function logout() {
-        if (!$this->status) { 
+        if (!$this->status) {
             $this->logError("Can't logout, no session");
-            return false; 
+            return false;
         }
-        $params = array ( 'params' => json_encode(
-                array( 'session_id' => $this->sessionId )));
+        $params = array('params' => json_encode(
+                    array('session_id' => $this->sessionId)));
         if (!$this->makeCall('Session/logout', $params)) {
             return false;
-        }    
+        }
         if ($this->response->success == 0) { //API returns failure
             $this->logError("Logout request failure");
             return false;
@@ -156,7 +156,7 @@ Class Billing extends BillingBase {
      * @return boolean - true if success
      */
     protected function makeCall(string $endpoint, array $request = array()) {
-        $this->logDebug('API call, endpoint:'.$endpoint, array('request' => $request));
+        $this->logDebug('API call, endpoint:' . $endpoint, array('request' => $request));
         try {
             $response = Requests::post($this->config['api'] . $endpoint, array(), $request
                             , array('verify' => $this->config['verify']));
@@ -232,7 +232,7 @@ Class Billing extends BillingBase {
     protected function restore() {
         
     }
-    
+
     /**
      * Clears session_id in the external store
      * Do nothing in this class
