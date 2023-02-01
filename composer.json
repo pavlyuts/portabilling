@@ -7,7 +7,7 @@
     "keywords": [ "portaone", "billing", "api", "portastart" ],
     "require": {
         "psr/log": "^1.1",
-        "rmccue/requests": "^1.7"
+        "rmccue/requests": "^2.0"
     },
     "authors": [
         {
