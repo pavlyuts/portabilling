@@ -1,8 +1,5 @@
 # Changelog
 
-## 1.0
-- tagged 1.0 as used in production. No future development, only fixes. All the future development to next version. No compatibility between 1 and 2.
-
 ## 0.10
 - add getResponseArray method to return billing response as an asosociateive array
 
