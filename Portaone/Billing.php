@@ -12,233 +12,193 @@
 
 namespace Portaone;
 
-use Requests;
+use WpOrg\Requests\Requests;
 use Psr\Log;
+use Portaone\Exceptions\{
+    BillingAuthError,
+    BillingConnectionError,
+    BillingAPIError
+};
+use \Portaone\Storage\{
+    SessionStorageInterface,
+    SessionNoStorage
+};
 
 /**
  * Billing API class to use with password or token auth
  * 
  * Uses PSR-3 logger for logging
- * The session may be retrived and stored outside, for example in HTML coockie
- * Session id may be supplied to continue session, class will relogin if
- * the session id not accepted by API
+ * The session data may be retrived and stored outside with a class, 
+ * impementing SessionStorageInterface
  * 
  */
 Class Billing extends BillingBase {
 
-    protected $config;
-    protected $sessionId = null;
-    protected $rawResponse;
-    public $status = true;
-    public $errorCode = null;
-    public $errorMessage = null;
-    public $response = null;
+    const DATETIME_FORMAT = 'Y-m-d H:i:s';
+    const API_BASE = '/rest';
+    const ESPF_BASE = '/espf/v1';
+    const LOCAL_TIMEZONE = 'UTC';
+
+    protected $host;
+    protected $account;
+    protected $options;
+    protected $session = null;
+    protected $storage;
 
     /**
      * Startst billing session, use session id or logins with credentials
      * 
      * @param array $config - configuration array, see config.sample.php for details
+     * $param SessionStorageInterface $storage - object to store session data
      * @param LoggerInterface $logger - PSR-3 compatible instance for logging
-     * @param string $sessionId - session id to continue.
      */
-    function __construct(array $config, Log\LoggerInterface $logger = null, string $sessionId = null) {
+    function __construct(array $config, SessionStorageInterface $storage = null, Log\LoggerInterface $logger = null) {
         parent::__construct($logger);
-        $config['verify'] = (isset($config['verify'])) ? $config['verify'] : false;
-        $this->config = $config;
-        (is_null($sessionId)) ? $this->restore() : $this->sessionId = $sessionId;
-        if (is_null($this->sessionId)) {
-            $this->login();
-        }
+        $this->host = $config['host'] ?? '';
+        $this->account = $config['account'] ?? [];
+        $this->options = $config['options'] ?? [];
+        $this->storage = $storage ?? new SessionNoStorage();
+        $this->session = $this->storage->restore();
+        $this->checkToken();
     }
 
     /**
-     * Returns session id
+     * Convert billing-supplied UTC time string to DateTime object with target 
+     * timezone
      * 
-     * @return string - session Id, if present or null if not.
+     * @param string $billingTime - datetime string as billing returns
+     * @param string $timezone - timezone string like 'Europe/London" or '+3000',
+     *                         as defined at https://www.php.net/manual/en/datetimezone.construct.php
+     * @return \DateTime
      */
-    public function getSessionId() {
-        return ($this->status) ? $this->sessionId : null;
+    static function timeToLocal(string $billingTime, string $timezone = null): \DateTime {
+        return (new \DateTime($billingTime, new \DateTimeZone('UTC')))->setTimezone(new \DateTimeZone($timezone ?? static::LOCAL_TIMEZONE));
     }
 
     /**
-     * Calls API endpoint with params, check API docs for details
-     * API docs: https://www.portaone.com/docs/PortaBilling_API.html
+     * Convert Datetime object to billing API string at UTC
      * 
-     * @param string $endpoint in a form of 'Session/login'
-     * @param array $data according to API reference for 'params'
-
-     * * @return boolean - true if siccess
+     * @param \DateTime $time - Object to convert
+     * @return string   Billing API-type datetime string, shifted to UTC
      */
-    public function call(string $endpoint, array $data = null) {
-        $request = array('auth_info' => json_encode(array('session_id' => $this->sessionId)));
-        if (!is_null($data)) {
-            $request['params'] = json_encode($data);
-        }
-        if (!$this->makeCall($endpoint, $request)) {
-            if ($this->errorCode != 'Server.Session.check_auth.auth_failed') {
-                return false;
-            }
-            $this->logger->info('Session expired, relogin');
-            if ($this->login()) {
-                $request['auth_info'] = json_encode(array('session_id' => $this->sessionId));
-                return $this->makeCall($endpoint, $request);
-            } else {
-                return false;
-            }
-        }
-        return true;
+    static function timeToBilling(\DateTime $time): string {
+        return $time->setTimezone(new \DateTimeZone('UTC'))->format(static::DATETIME_FORMAT);
     }
 
-    /**
-     * Logins to the session with configured credentials
-     * 
-     * @return boolean - true is success
-     */
-    protected function login() {
-        if (!isset($this->config['login'])) {
-            $this->logError('Login name required', array('config' => $this->config));
+    public function billingCall(string $endpoint, array $data = []) {
+        $this->checkToken();
+        $response = $this->httpCall($this->host . static::API_BASE . $endpoint,
+                $data, ['Authorization' => 'Bearer ' . $this->session['access_token']]);
+        if (false === ($filename = $this->extractFileName($response->headers))) {
+            return $response->decode_body(true);
         }
-        $account = array('login' => $this->config['login']);
-        if (isset($this->config['password'])) {
-            $account['password'] = $this->config['password'];
-        } elseif (isset($this->config['token'])) {
-            $account['token'] = $this->config['token'];
+        return [
+            'filename' => $filename,
+            'file' => $response->body,
+        ];
+    }
+
+    public function getUsername() {
+        if (!isset($this->session['access_token'])) {
+            return null;
         }
-        $request = array(
-            'params' => json_encode($account)
-        );
-        $this->logDebug('Account:', array('request' => $request));
-        if ($this->makeCall('Session/login', $request)) {
-            $this->sessionId = $this->response->session_id;
-            $this->save();
-            return true;
+        try {
+            return json_decode(base64_decode(explode('.', $this->session['access_token'])[1] ?? ''), true)['login'] ?? null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    protected function httpCall(string $uri, array $data, array $headers = []) {
+        try {
+            $response = Requests::post($uri, array_merge(["Content-Type" => "application/json"], $headers),
+                            json_encode(['params' => $data], JSON_UNESCAPED_UNICODE), $this->options);
+        } catch (\WpOrg\Requests\Exception $e) {
+            throw new BillingConnectionError($e->getMessage());
+        }
+        if ($response->success) {
+            return $response;
+        }
+        if ($response->status_code != 500) {
+            throw new BillingConnectionError('Http return code ' . $response->status_code, $response->status_code);
         } else {
+            $err = $response->decode_body(true);
+            if ($err['faultcode'] == 'Server.Session.auth_failed') {
+                throw new BillingAuthError('Auth error, code:' . $err['faultcode'] . ' Message:' . $err['faultstring']);
+            }
+            throw new BillingAPIError($err['faultstring'], $err['faultcode']);
+        }
+    }
+
+    protected function extractFileName(\WpOrg\Requests\Response\Headers $headers) {
+        if (!(strpos($headers->offsetGet('content-type'), 'application/json') === false)) {
             return false;
         }
+        if (1 === preg_match('/filename="([^"]+)"/', $headers->offsetGet('content-disposition'), $m)) {
+            return $m[1];
+        }
+    }
+
+    /**
+     * Logins to the session with configured credentials, fill up session structure
+     */
+    protected function login() {
+        if (!isset($this->account['login']) || (!isset($this->account['password']) && !isset($this->account['token']))) {
+            $this->logDebug('Credentials required', array('account' => $this->account));
+            throw new BillingAuthError('Credentials required');
+        }
+        $response = $this->httpCall($this->host . static::API_BASE . '/Session/login', $this->account);
+        $this->session = $response->decode_body(true);
+        $this->storage->save($this->session);
     }
 
     /**
      * Closes the session explicitly
      */
     public function logout() {
-        if (!$this->status) {
-            $this->logError("Can't logout, no session");
-            return false;
+        if (!isset($this->session['access_token'])) {
+            return;
         }
-        $params = array('params' => json_encode(
-                    array('session_id' => $this->sessionId)));
-        if (!$this->makeCall('Session/logout', $params)) {
-            return false;
-        }
-        if ($this->response->success == 0) { //API returns failure
-            $this->logError("Logout request failure");
-            return false;
-        }
-        $this->clear();
-        return true;
-    }
-
-    /**
-     * Return response as associated array
-     * 
-     * @return array - billling response
-     */
-    function getResponseArray() {
-        return ($this->status) ? json_decode($this->rawResponse, true) : false;
-    }
-    
-    /**
-     * Perfoms API call with prepared request array
-     * 
-     * @param string $endpoint
-     * @param array $request
-     * 
-     * @return boolean - true if success
-     */
-    protected function makeCall(string $endpoint, array $request = array()) {
-        $this->logDebug('API call, endpoint:' . $endpoint, array('request' => $request));
         try {
-            $response = Requests::post($this->config['api'] . $endpoint, array(), $request
-                            , array('verify' => $this->config['verify']));
-        } catch (\Requests_Exception $e) {
-            $this->logError('HTTP error ' . $e->getMessage(), array('config' => $this->config));
-            return $this->failure('HTTP Error: ' . $e->getMessage());
+            $this->httpCall($this->host . static::API_BASE . '/Session/logout',
+                    ['params' => [
+                            'access_token' => $this->session['access_token'],
+                        ]
+                    ]
+            );
+        } catch (BillingAPIError $e) {
+            
         }
-        if ($response->success) {
-            $answer = json_decode($response->body);
-            if (is_null($answer)) {
-                $this->logError('Can not decode answer to JSON', array('request' => $request, 'response' => $response));
-                return $this->failure("Can not decode answer to JSON");
-            }
-            $this->logDebug('API call success', array('response' => $response->body));
-            $this->rawResponse = $response->body;
-            return $this->ok($answer);
-        } elseif ($response->status_code == 500) {
-            $answer = json_decode($response->body);
-            if (is_null($answer)) {
-                $this->logError('Can not decode answer with status code 500 to JSON', array('request' => $request, 'Response' => $response));
-                return $this->failure("Can not decode answer with status code 500 to JSON");
-            }
-            if ($answer->faultcode != 'Server.Session.check_auth.auth_failed') {
-                $this->logError('API error ' . $answer->faultcode . ', Message: ' . $answer->faultstring, array('request' => $request, 'response' => $response));
-            }
-            return $this->failure($answer->faultstring, $answer->faultcode);
+        $this->storage->clean();
+    }
+
+    protected function checkToken() {
+        if (!isset($this->session['refresh_token'])) {
+            $this->login();
+            return;
         }
-        $this->logError('HTTP error ' . $response->status_code, array('request' => $request, 'response' => $response));
-        return $this->failure('HTTP Error: ' . $response->status_code);
+        if ($this->tokenExpired()) {
+            try {
+                $response = $this->httpCall($this->host . static::API_BASE . '/Session/refresh_access_token',
+                        ['params' => [
+                                'refresh_token' => session['refresh_token'],
+                            ]
+                        ]
+                );
+            } catch (BillingAPIError $e) {
+                $this->logDebug("Tocket refresh failed, relogin");
+                $this->login();
+                return;
+            }
+            $this->session = merge_array($this->session, $response->decode_body(true));
+            $this->storage->save($this->session);
+        }
     }
 
-    /**
-     * Sets class status on success, store response in the property
-     * 
-     * @param StdClass $response
-     * @return boolean true
-     */
-    protected function ok($response) {
-        $this->response = $response;
-        $this->status = true;
-        $this->errorCode = null;
-        $this->errorMessage = null;
-        return true;
-    }
-
-    /**
-     * Sets class status on failure
-     * 
-     * @param string $message - error message
-     * @param string $code - error code
-     * @return boolean false
-     */
-    protected function failure(string $message = null, string $code = null) {
-        $this->response = null;
-        $this->status = false;
-        $this->errorCode = $code;
-        $this->errorMessage = $message;
-        return false;
-    }
-
-    /**
-     * Saves session_id to external store
-     * Do nothing in this class
-     */
-    protected function save() {
-        
-    }
-
-    /**
-     * Restores session_id from external store
-     * Do nothing in this class
-     */
-    protected function restore() {
-        
-    }
-
-    /**
-     * Clears session_id in the external store
-     * Do nothing in this class
-     */
-    protected function clear() {
-        
+    protected function tokenExpired(): bool {
+        $token = $this->timeToLocal($this->session['expires_at'], 'UTC');
+        $now = new \DateTime('now', new \DateTimeZone('UTC'));
+        return ($token->getTimestamp() - $now->getTimestamp()) < 10;
     }
 
 }

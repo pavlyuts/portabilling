@@ -9,22 +9,26 @@
 /**
  * API class config template. Uncomment and use fields you need
  */
-$BillingConfig = array(
-    //API URI, including any subdirectory, ends with /
-    'api' => 'https://server.domain.net/rest/',
+$BillingConfig = [
+    //API host only, no trailing /
+    'host' => 'https://server.domain.net',
     
-    //Should SSL be verified? false is defaults, uncomment for verify
-    //'verify' => trye,
+    // API credentiatls
+    'account' => [
+        //Username for API user, mandatory
+        'login' => 'username',
+        //Password for API user, paoo or token required
+        'password' => 'password',
+        //API token to use instead password, needs username
+        'token' => 'token'
+    ],
+    
+    // Options for API HTTP request, as described at $optionas help at
+    // https://requests.ryanmccue.info/api-2.x/classes/WpOrg-Requests-Requests.html#method_request
+    'options' => [
         
-    //Username for API user, mandatry if no valid session id supplied
-    //'login'     => 'username',
+    ],
     
-    //Password for API user
-    //'password'  => 'password',
-    
-    //API token to use instead password, needs username
-    //'token' => 'token'
-    
-    //File to store/retrieve session ID
-    //'file' => '/somwhere/somefile'
-);
+    //File to store/retrieve API session data, sed for file storage
+    'file' => '/somwhere/somefile'
+];

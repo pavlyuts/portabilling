@@ -12,13 +12,24 @@
     "authors": [
         {
             "name": "Alexey Pavlyuts",
-            "email": "alexey@pavlyuts.ru",
-            "homepage": "https://pavlyuts.ru"
+            "email": "alexey@pavlyuts.ru"
         }
     ],
+    "require": {
+        "psr/log": "^1.1",
+        "rmccue/requests": "^1.7"
+    },
     "autoload": {
         "psr-4": {
             "Portaone\\": "Portaone"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PortaoneTests\\": "Tests"
         }
     }
 }
